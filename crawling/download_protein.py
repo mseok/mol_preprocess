@@ -14,7 +14,7 @@ from aiohttp import ClientSession, TCPConnector
 http_ok = [200]
 SEMA_LIMIT = 200
 CONNECTOR_LIMIT = 50
-BASE_URL = "https://files.rcsb.org/download/{}.pdb"
+BASE_URL = "https://files.rcsb.org/download/{}.{}"
 
 
 async def download():
@@ -22,11 +22,11 @@ async def download():
     sem = Semaphore(SEMA_LIMIT)
     connector = TCPConnector(limit=CONNECTOR_LIMIT)
     async with ClientSession(connector=connector) as session:
-        for pdb in pdbs:
+        for file in files:
             tasks.append(
                 ensure_future(
-                    get_pdb(
-                        pdb,
+                    get_file(
+                        file,
                         session=session,
                         sem=sem,
                     )
@@ -35,11 +35,11 @@ async def download():
         return await gather(*tasks)
 
 
-async def get_pdb(pdbid, session, sem):
-    file = os.path.join(args.out_dir, f"{pdbid}.pdb")
+async def get_file(_id, session, sem):
+    file = os.path.join(args.out_dir, f"{_id}.{args.filetype}")
     if os.path.exists(file):
         return
-    url = BASE_URL.format(pdbid)
+    url = BASE_URL.format(_id, args.filetype)
     async with sem:
         async with session.get(url) as response:
             content = await response.read()
@@ -67,10 +67,13 @@ if __name__ == "__main__":
         type=str,
         default="./",
     )
+    parser.add_argument(
+        "-t", "--filetype", help="file type", type=str, choices=["cif", "pdb"]
+    )
     args = parser.parse_args()
 
     with open(args.file, "r") as f:
-        pdbs = f.readline()
-        pdbs = pdbs.split(",")
+        files = f.readline()
+        files = files.split(",")
 
     run(download())
