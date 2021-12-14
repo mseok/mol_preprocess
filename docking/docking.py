@@ -43,23 +43,23 @@ def uff_calc(mol: Chem.Mol) -> Tuple[Chem.Mol, int]:
 
 def docking(keys: List[str]) -> None:
     pdb_id = keys[0]
-    protein = os.path.join(FLAGS.pdbbind_dir, pdb_id, f"{pdb_id}_protein_nowater.pdb")
+    protein = os.path.join(args.pdbbind_dir, pdb_id, f"{pdb_id}_protein_nowater.pdb")
     protein_pdbqt = os.path.join(
-        FLAGS.pdbbind_dir, pdb_id, f"{pdb_id}_protein_nowater.pdbqt"
+        args.pdbbind_dir, pdb_id, f"{pdb_id}_protein_nowater.pdbqt"
     )
-    ligand = os.path.join(FLAGS.pdbbind_dir, pdb_id, f"{pdb_id}_ligand.sdf")
+    ligand = os.path.join(args.pdbbind_dir, pdb_id, f"{pdb_id}_ligand.sdf")
     if not os.path.exists(ligand):
         protein = os.path.join(
-            FLAGS.pdbbind_general_dir, pdb_id, f"{pdb_id}_protein_nowater.pdb"
+            args.pdbbind_general_dir, pdb_id, f"{pdb_id}_protein_nowater.pdb"
         )
         protein_pdbqt = os.path.join(
-            FLAGS.pdbbind_general_dir, pdb_id, f"{pdb_id}_protein_nowater.pdbqt"
+            args.pdbbind_general_dir, pdb_id, f"{pdb_id}_protein_nowater.pdbqt"
         )
-        ligand = os.path.join(FLAGS.pdbbind_general_dir, pdb_id, f"{pdb_id}_ligand.sdf")
-    log = os.path.join(FLAGS.log_dir, f"{pdb_id}.log")
-    pdb = os.path.join(FLAGS.pdb_dir, f"{pdb_id}.pdb")
-    pdbqt = os.path.join(FLAGS.pdbqt_dir, f"{pdb_id}.pdbqt")
-    result_pdbqt = os.path.join(FLAGS.result_pdbqt_dir, f"{pdb_id}.pdbqt")
+        ligand = os.path.join(args.pdbbind_general_dir, pdb_id, f"{pdb_id}_ligand.sdf")
+    log = os.path.join(args.log_dir, f"{pdb_id}.log")
+    pdb = os.path.join(args.pdb_dir, f"{pdb_id}.pdb")
+    pdbqt = os.path.join(args.pdbqt_dir, f"{pdb_id}.pdbqt")
+    result_pdbqt = os.path.join(args.result_pdbqt_dir, f"{pdb_id}.pdbqt")
 
     # Pass condition
     if os.path.exists(result_pdbqt) and os.path.getsize(result_pdbqt):
@@ -138,8 +138,8 @@ def parser() -> argparse.Namespace:
     parser.add_argument(
         "--candidates_fn", type=PosixPath, default="./candidates/docking_candidates.txt"
     )
-    FLAGS, _ = parser.parse_known_args()
-    return FLAGS
+    args, _ = parser.parse_known_args()
+    return args
 
 
 def parse_candidate_fn(fn: PosixPath) -> List[List[str]]:
@@ -149,17 +149,17 @@ def parse_candidate_fn(fn: PosixPath) -> List[List[str]]:
     return lines
 
 
-def main(FLAGS: argparse.Namespace) -> None:
-    for key, value in vars(FLAGS).items():
+def main(args: argparse.Namespace) -> None:
+    for key, value in vars(args).items():
         if "dir" in key and not os.path.exists(value):
             os.mkdir(value)
-    keys = parse_candidate_fn(FLAGS.candidates_fn)
-    if FLAGS.start is not None and FLAGS.end is not None:
-        keys = keys[FLAGS.start : FLAGS.end]
-    mp_pool(FLAGS.ncpu, keys)
+    keys = parse_candidate_fn(args.candidates_fn)
+    if args.start is not None and args.end is not None:
+        keys = keys[args.start : args.end]
+    mp_pool(args.ncpu, keys)
     return
 
 
 if __name__ == "__main__":
-    FLAGS = parser()
-    main(FLAGS)
+    args = parser()
+    main(args)

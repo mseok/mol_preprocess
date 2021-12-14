@@ -20,8 +20,8 @@ def parser() -> argparse.Namespace:
     parser.add_argument("--ncpu", type=int, default=4)
     parser.add_argument("--start", type=int)
     parser.add_argument("--end", type=int)
-    FLAGS, _ = parser.parse_known_args()
-    return FLAGS
+    args, _ = parser.parse_known_args()
+    return args
 
 
 def mp_pool(ncpu: int, fns: List[str]) -> None:
@@ -33,15 +33,15 @@ def mp_pool(ncpu: int, fns: List[str]) -> None:
     return
 
 
-def main(FLAGS: argparse.Namespace) -> None:
-    fns = glob.glob(os.path.join(FLAGS.result_pdbqt_dir, "*.pdbqt"))
-    fns = fns[FLAGS.start : FLAGS.end]
-    mp_pool(FLAGS.ncpu, fns)
+def main(args: argparse.Namespace) -> None:
+    fns = glob.glob(os.path.join(args.result_pdbqt_dir, "*.pdbqt"))
+    fns = fns[args.start : args.end]
+    mp_pool(args.ncpu, fns)
     return
 
 
 if __name__ == "__main__":
-    FLAGS = parser()
-    if not os.path.exists(FLAGS.result_sdf_dir):
-        os.makedirs(FLAGS.result_sdf_dir, exist_ok=True)
-    main(FLAGS)
+    args = parser()
+    if not os.path.exists(args.result_sdf_dir):
+        os.makedirs(args.result_sdf_dir, exist_ok=True)
+    main(args)

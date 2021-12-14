@@ -7,7 +7,8 @@ from itertools import product
 
 def main(args: argparse.Namespace) -> None:
     if args.pdbbind_dir:
-        test_keys = glob.glob(f"{args.pdbbind_dir}/????")
+        pdbbind_dir = os.path.abspath(args.pdbbind_dir)
+        test_keys = glob.glob(f"{pdbbind_dir}/????")
         test_keys = [test_key.split("/")[-1] for test_key in test_keys]
 
     with open(args.input_file, "r") as f:

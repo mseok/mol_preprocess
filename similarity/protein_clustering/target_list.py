@@ -3,7 +3,8 @@ import glob
 
 
 def main(args: argparse.Namespace) -> None:
-    keys = glob.glob(f"{args.pdbbind_dir}/????")
+    pdbbind_dir = os.path.abspath(args.pdbbind_dir)
+    keys = glob.glob(f"{pdbbind_dir}/????")
     keys = [key.split("/")[-1] for key in keys]
     with open(args.output_file, "w") as w:
         for key in keys:

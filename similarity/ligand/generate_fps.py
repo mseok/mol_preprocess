@@ -12,12 +12,13 @@ from rdkit import DataStructs
 from rdkit.Chem import AllChem
 from rdkit import RDLogger
 from rdkit.Chem.Descriptors import ExactMolWt
+
 RDLogger.DisableLog("rdApp.*")
 
 
 def generate_fp(key, smiles):
     try:
-        fn = os.path.join(FLAGS.dirname, key)
+        fn = os.path.join(args.dirname, key)
         if os.path.exists(fn):
             return
         if "." in smiles:
@@ -62,7 +63,7 @@ def initialize_queue(data, NTASKS=20, shared_dict=None):
 def initialize_proc(queue, fn, NCPU=4):
     procs = []
     for _ in range(NCPU):
-        proc = Process(target=fn, args=(queue, ))
+        proc = Process(target=fn, args=(queue,))
         procs.append(proc)
         proc.start()
         time.sleep(0.5)
@@ -77,21 +78,22 @@ def write_result(keys, smiles_list, clusters, fn):
             w.write(f"{ligand}\t{smiles}\n")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--fn", type=str, help="filename")
     parser.add_argument("--dirname", type=str, help="directory name")
-    FLAGS, _ = parser.parse_known_args()
+    parser.add_argument("--ncpu", type=int, help="ncpu")
+    args, _ = parser.parse_known_args()
 
-    NTASKS = 108
-    NCPU = 36
+    NCPU = args.ncpu
+    NTASKS = args.ncpu * 3
 
-    with open(FLAGS.fn, "r") as f:
+    with open(args.fn, "r") as f:
         lines = f.readlines()
         lines = [line.split() for line in lines]
 
-    if not os.path.exists(FLAGS.dirname):
-        os.mkdir(FLAGS.dirname)
+    if not os.path.exists(args.dirname):
+        os.mkdir(args.dirname)
     queue = initialize_queue(lines, NTASKS)
     procs = initialize_proc(queue, worker, NCPU)
     for proc in procs:

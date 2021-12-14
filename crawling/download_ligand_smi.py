@@ -4,7 +4,14 @@ import typing as tp
 import traceback
 import os
 from io import BytesIO
-from asyncio import ensure_future, gather, get_event_loop, Semaphore, sleep, TimeoutError
+from asyncio import (
+    ensure_future,
+    gather,
+    get_event_loop,
+    Semaphore,
+    sleep,
+    TimeoutError,
+)
 
 import aiohttp
 from lxml import etree, html

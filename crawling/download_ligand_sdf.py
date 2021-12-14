@@ -56,13 +56,8 @@ def get_base_url() -> str:
     return base_url
 
 
-# async def fetch(session, semaphore, **kwargs):
 async def fetch(session, semaphore, data):
     async with semaphore:
-        # auth_asym_id = kwargs["auth_asym_id"]
-        # auth_seq_id = kwargs["auth_seq_id"]
-        # pdbid = kwargs["pdbid"]
-        # file = f"{pdbid}_{auth_asym_id}_{kwargs['ligand_key']}.sdf"
         data: dict
         pdbid = data.pop("pdbid")
         filename = data["filename"]
@@ -96,16 +91,7 @@ async def main():
                     futures.append(ensure_future(fetch(session, semaphore, data)))
                 elif isinstance(data, list):
                     for _data in data:
-                        futures.append(
-                            ensure_future(fetch(session, semaphore, _data))
-                        )
-                # if isinstance(data, dict):
-                #     futures.append(ensure_future(fetch(session, semaphore, **data)))
-                # elif isinstance(data, list):
-                #     for _data in data:
-                #         futures.append(
-                #             ensure_future(fetch(session, semaphore, **_data))
-                #         )
+                        futures.append(ensure_future(fetch(session, semaphore, _data)))
             except aiohttp.ClientConnectionError:
                 # something went wrong with the exception, decide on what to do next
                 client.close()
@@ -136,10 +122,6 @@ def read_cif(file: str):
             data = [line.split()[1] for line in lines]
             data = dict(zip(PDBX_NONPOLY_SCHEME, data))
             required_data = refine_data(data, file)
-            # required_data = dict()
-            # for key, new_key in KEY_DICT.items():
-            #     required_data[new_key] = data[key]
-            # required_data["pdbid"] = file.split("/")[-1].split(".")[0]
             return required_data
         elif length == len(PDBX_NONPOLY_SCHEME):
             lines = lines[idx:]
@@ -152,12 +134,6 @@ def read_cif(file: str):
                     break
                 data = dict(zip(PDBX_NONPOLY_SCHEME, data))
                 required_data = refine_data(data, file)
-                # required_data = dict()
-                # for key, new_key in KEY_DICT.items():
-                #     required_data[new_key] = data[key]
-                # pdbid = file.split("/")[-1].split(".")[0]
-                # required_data["pdbid"] = pdbid
-                # required_data["filename"] = f"{pdbid}_{label_asym_id}_{auth_seq_id}.sdf"
                 required_datas.append(required_data)
             return required_datas
         else:

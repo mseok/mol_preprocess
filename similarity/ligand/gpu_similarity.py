@@ -15,7 +15,7 @@ def cal_similarity(vec1, vec2):
     and_out = torch.matmul(vec1, vec2.T)
     or_out = torch.matmul(or1, or2.T)
     or_out = N_FEATURES - or_out
-    similarity = and_out/or_out
+    similarity = and_out / or_out
     return similarity
 
 
@@ -75,39 +75,38 @@ def main(dataset1, dataset2, batch1, batch2, self_similarity=False):
 def check_current_running_device(ngpu):
     from subprocess import Popen
     from subprocess import PIPE
+
     for i in range(ngpu):
         nvidia_smi = Popen(["nvidia-smi", "-i", str(i)], stdout=PIPE)
-        grep = Popen(["grep", "No running"],
-                     stdin=nvidia_smi.stdout, stdout=PIPE)
-        count = Popen(["wc", "-l"], stdin=grep.stdout,
-                      stdout=PIPE, encoding='utf-8')
+        grep = Popen(["grep", "No running"], stdin=nvidia_smi.stdout, stdout=PIPE)
+        count = Popen(["wc", "-l"], stdin=grep.stdout, stdout=PIPE, encoding="utf-8")
         output = int(count.communicate()[0].split("\n")[0])
         if output:
             break
     return i
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--target", type=str, help="compare filename")
     parser.add_argument("--ref", type=str, help="refence filename")
     parser.add_argument("--ngpus", type=int, help="number of gpus in node")
-    FLAGS, _ = parser.parse_known_args()
+    args, _ = parser.parse_known_args()
 
     PATH = "similarity"
     if not os.path.exists(PATH):
         os.mkdir(PATH)
-    device_id = check_current_running_device(FLAGS.ngpus)
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(device_id)
+    device_id = check_current_running_device(args.ngpus)
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(device_id)
     device = torch.device("cuda")
     THRESHOLD = 0.7
     N_FEATURES = 1024
-    save_fn = os.path.join(PATH, FLAGS.target.split("/")[-1])
-    dataset1 = BitData(FLAGS.target)
-    dataset2 = BitData(FLAGS.ref)
+    save_fn = os.path.join(PATH, args.target.split("/")[-1])
+    dataset1 = BitData(args.target)
+    dataset2 = BitData(args.ref)
     print("similsrity between train dataset")
-    print(FLAGS.target, "length: ", len(dataset1))
-    print(FLAGS.ref, "length: ", len(dataset2))
+    print(args.target, "length: ", len(dataset1))
+    print(args.ref, "length: ", len(dataset2))
 
     total1 = torch.zeros(len(dataset1))
     indices1 = main(dataset1, dataset2, 10000, 20000).long()
@@ -119,5 +118,5 @@ if __name__ == '__main__':
     total2[indices2] = 1
 
     total = torch.logical_and(total1, total2)
-    total = torch.where(total==1)[0].numpy()
+    total = torch.where(total == 1)[0].numpy()
     np.save(save_fn, total)

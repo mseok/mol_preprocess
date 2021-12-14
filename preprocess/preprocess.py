@@ -71,10 +71,10 @@ def preprocessor(l: str) -> None:
     ligand_key = "_".join(pdb_fn.split("_")[:-1])
     target = ligand_key.split("-")[0]
 
-    save_dir = FLAGS.save_dir
+    save_dir = args.save_dir
     if os.path.exists(f"{save_dir}/{pdb_fn}"):
         return
-    bs_pdb_fn = os.path.join(FLAGS.pdbbind_dir, target, f"{target}_protein_nowater.pdb")
+    bs_pdb_fn = os.path.join(args.pdbbind_dir, target, f"{target}_protein_nowater.pdb")
 
     temp = Chem.MolFromSmiles(key_to_smi[ligand_key])
     m1 = Chem.SDMolSupplier(l, sanitize=False)[0]
@@ -94,7 +94,7 @@ def preprocessor(l: str) -> None:
         return
     if len(m2.GetConformers()) == 0:
         return
-    with open(os.path.join(FLAGS.save_dir, pdb_fn), "wb") as fp:
+    with open(os.path.join(args.save_dir, pdb_fn), "wb") as fp:
         pickle.dump((m1, m2), fp)
     return
 
@@ -140,8 +140,8 @@ def parser() -> argparse.Namespace:
     parser.add_argument("--ncpu", type=int, default=4)
     parser.add_argument("--start", type=int)
     parser.add_argument("--end", type=int)
-    FLAGS, _ = parser.parse_known_args()
-    return FLAGS
+    args, _ = parser.parse_known_args()
+    return args
 
 
 def parse_candidate_fn(fn: PosixPath) -> List[List[str]]:
@@ -159,19 +159,18 @@ def get_smiles_dic(fn: PosixPath) -> Dict[str, str]:
     return dict(lines)
 
 
-def main(FLAGS: argparse.Namespace) -> None:
-    if not os.path.exists(FLAGS.save_dir):
-        os.makedirs(FLAGS.save_dir, exist_ok=True)
-    keys = parse_candidate_fn(FLAGS.candidates_fn)
-    if FLAGS.start is not None and FLAGS.end is not None:
-        keys = keys[FLAGS.start : FLAGS.end]
+def main(args: argparse.Namespace) -> None:
+    if not os.path.exists(args.save_dir):
+        os.makedirs(args.save_dir, exist_ok=True)
+    keys = parse_candidate_fn(args.candidates_fn)
+    if args.start is not None and args.end is not None:
+        keys = keys[args.start : args.end]
     global key_to_smi
-    key_to_smi = get_smiles_dic(FLAGS.docking_candidates_fn)
-    mp_pool(FLAGS.ncpu, keys)
+    key_to_smi = get_smiles_dic(args.docking_candidates_fn)
+    mp_pool(args.ncpu, keys)
     return
 
 
 if __name__ == "__main__":
-    global FLAGS
-    FLAGS = parser()
-    main(FLAGS)
+    args = parser()
+    main(args)

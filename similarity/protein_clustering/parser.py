@@ -5,7 +5,8 @@ from subprocess import run
 
 
 def main(args: argparse.Namespace) -> None:
-    files = os.path.join(args.pdbbind_dir, "????/????_protein.pdb")
+    pdbbind_dir = os.path.abspath(args.pdbbind_dir)
+    files = os.path.join(pdbbind_dir, "????/????_protein.pdb")
     pdbs = glob.glob(files)
     for pdb in pdbs:
         if not os.path.exists(f"{pdb.split('.')[0]}_nowater.pdb"):

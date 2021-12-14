@@ -77,8 +77,9 @@ if __name__ == "__main__":
         with open(args.input_file, "r") as f:
             keys = f.readlines()
             keys = [key.split()[0] for key in keys]
+        pdbbind_dir = os.path.abspath(args.pdbbind_dir)
         targets = [
-            f"{args.pdbbind_dir}/{key}/{key}_protein_nowater.pdb" for key in keys
+            f"{pdbbind_dir}/{key}/{key}_protein_nowater.pdb" for key in keys
         ]
         fasta_list = []
         for target in targets:
